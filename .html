@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Daily Verse App</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2c3e50">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <div class="container">
+
+    <h1>📖 Daily Verse</h1>
+
+    <p id="verse">Press the button to get a verse</p>
+
+    <button onclick="generateVerse()">Get Daily Verse</button>
+
+  </div>
+
+  <script src="script.js"></script>
+
+  <!-- Service Worker -->
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("service-worker.js");
+    }
+  </script>
+
+</body>
+</html>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background: url("https://images.unsplash.com/photo-1504052434569-70ad5836ab65") no-repeat center center fixed;
+  background-size: cover;
+  color: white;
+}
+
+.container {
+  margin-top: 120px;
+  padding: 20px;
+}
+
+h1 {
+  font-size: 40px;
+}
+
+#verse {
+  margin: 20px auto;
+  font-size: 20px;
+  background: rgba(0,0,0,0.6);
+  padding: 15px;
+  border-radius: 10px;
+  width: 80%;
+  max-width: 500px;
+}
+
+button {
+  padding: 12px 20px;
+  font-size: 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+const verses = [
+  "John 3:16 - For God so loved the world...",
+  "Philippians 4:13 - I can do all things through Christ...",
+  "Psalm 23:1 - The Lord is my shepherd; I shall not want.",
+  "Jeremiah 29:11 - For I know the plans I have for you...",
+  "Isaiah 41:10 - Do not fear, for I am with you...",
+  "Romans 8:28 - All things work together for good...",
+  "Proverbs 3:5 - Trust in the Lord with all your heart..."
+];
+
+function generateVerse() {
+  const index = Math.floor(Math.random() * verses.length);
+  document.getElementById("verse").innerText = verses[index];
+}
+{
+  "name": "Daily Verse App",
+  "short_name": "Verse",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#2c3e50",
+  "theme_color": "#2c3e50",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/616/616494.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
+const CACHE_NAME = "daily-verse-cache-v1";
+
+const FILES = [
+  "./",
+  "./index.html",
+  "./style.css",
+  "./script.js",
+  "./manifest.json"
+];
+
+self.addEventListener("install", event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache => {
+      return cache.addAll(FILES);
+    })
+  );
+});
+
+self.addEventListener("activate", event => {
+  event.waitUntil(
+    caches.keys().then(keys => {
+      return Promise.all(
+        keys.map(key => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
+        })
+      );
+    })
+  );
+});
+
+self.addEventListener("fetch", event => {
+  event.respondWith(
+    caches.match(event.request).then(response => {
+      return response || fetch(event.request);
+    })
+  );
+});
